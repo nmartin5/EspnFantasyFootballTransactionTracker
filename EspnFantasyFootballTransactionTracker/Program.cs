@@ -2,6 +2,7 @@
 using EspnFantasyFootballTransactionTracker.Scraping;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.IO;
 
 namespace EspnFantasyFootballTransactionTracker
@@ -29,7 +30,23 @@ namespace EspnFantasyFootballTransactionTracker
 
             var process = provider.GetService<Process>();
 
-            process.StartAsync().Wait();
+            try
+            {
+                process.StartAsync().Wait();
+            }
+            catch (Exception ex)
+            {
+                var emailService = provider.GetService<IEmailSender>();
+
+                emailService.SendEmailAsync("Raspberry Pi Error!", $@"
+An exception has occured.
+
+Ex: {ex.ToString()}
+
+Message: {ex.Message}
+
+StackTrace: {ex.StackTrace}");
+            }
         }
     }
 }

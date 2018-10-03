@@ -36,7 +36,6 @@ namespace EspnFantasyFootballTransactionTracker
                             ActivityItem oldestItem = activityItemCache.OrderBy(x => x.DateTime).First();
                             activityItemCache.Remove(oldestItem);
                         }
-                        activityItemCache.Add(item);
                         newItems.Add(item);
                     }
                 }
@@ -50,8 +49,26 @@ namespace EspnFantasyFootballTransactionTracker
 {newItemListstr}
 
 EOM";
+                    try
+                    {
+                        await _emailSender.SendEmailAsync("New League Activity", body);
 
-                    await _emailSender.SendEmailAsync("New League Activity", body);
+                        foreach (var item in newItems)
+                        {
+                            activityItemCache.Add(item);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        try
+                        {
+                            await _emailSender.SendEmailAsync("New Exception occurred", ex.ToString());
+                        }
+                        catch
+                        {
+                            // do nothing
+                        }
+                    }
                 }
 
                 await Task.Delay(new TimeSpan(0, 5, 0));

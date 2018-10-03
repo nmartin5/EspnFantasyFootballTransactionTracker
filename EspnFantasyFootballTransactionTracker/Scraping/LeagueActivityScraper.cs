@@ -48,10 +48,11 @@ namespace EspnFantasyFootballTransactionTracker.Scraping
                 string time = activityItem.SelectNodes("//li[@class='recent-activity-when']//span[@class='recent-activity-time']")[i].InnerText;
 
                 var description = activityItem.SelectNodes("//li[@class='recent-activity-description']")[i].InnerText;
+                var descriptionWithoutAsterisk = description.Replace('*', '');
 
                 var dateTime = DateTime.ParseExact($"{date} {time}", "MMM d h:mm tt", new CultureInfo("en-US"));
 
-                ActivityItem itemToAdd = new ActivityItem(dateTime, description);
+                ActivityItem itemToAdd = new ActivityItem(dateTime, descriptionWithoutAsterisk);
 
                 items.Add(itemToAdd);
                 i++;

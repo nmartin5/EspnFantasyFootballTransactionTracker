@@ -11,6 +11,7 @@ namespace EspnFantasyFootballTransactionTracker
     {
         static void Main(string[] args)
         {
+            Console.WriteLine($"Application starting...");
             IConfigurationRoot configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
@@ -36,16 +37,11 @@ namespace EspnFantasyFootballTransactionTracker
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"An unexpected error occured.\n{ex.ToString()}");
+
                 var emailService = provider.GetService<IEmailSender>();
 
-                emailService.SendEmailAsync("Raspberry Pi Error!", $@"
-An exception has occured.
-
-Ex: {ex.ToString()}
-
-Message: {ex.Message}
-
-StackTrace: {ex.StackTrace}");
+                emailService.SendEmailAsync("Raspberry Pi Error!", ex.ToString());
             }
         }
     }

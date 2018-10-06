@@ -24,33 +24,35 @@ namespace EspnFantasyFootballTransactionTracker
 
             while (true)
             {
-                var items = _leagueActivityScraper.GetNewActivityItems();
-                var newItems = new List<ActivityItem>();
-
-                foreach (var item in items)
+                try
                 {
-                    if (!activityItemCache.Contains(item))
+                    var items = _leagueActivityScraper.GetNewActivityItems();
+
+                    var newItems = new List<ActivityItem>();
+
+                    foreach (var item in items)
                     {
-                        if (activityItemCache.Count == 50)
+                        if (!activityItemCache.Contains(item))
                         {
-                            ActivityItem oldestItem = activityItemCache.OrderBy(x => x.DateTime).First();
-                            activityItemCache.Remove(oldestItem);
+                            if (activityItemCache.Count == 50)
+                            {
+                                ActivityItem oldestItem = activityItemCache.OrderBy(x => x.DateTime).First();
+                                activityItemCache.Remove(oldestItem);
+                            }
+                            newItems.Add(item);
                         }
-                        newItems.Add(item);
                     }
-                }
-                if (newItems.Any())
-                {
-                    List<string> newItemList = newItems.Select(x => $"{x.DateTime.ToShortDateString()}: {x.Description}").ToList();
-                    string newItemListstr = string.Join(".\n", newItemList);
+                    if (newItems.Any())
+                    {
+                        List<string> newItemList = newItems.Select(x => $"{x.DateTime.ToShortDateString()}: {x.Description}").ToList();
+                        string newItemListstr = string.Join(".\n", newItemList);
 
-                    string body = $@"The following activity items occurred since your last update.
+                        string body = $@"The following activity items occurred since your last update.
 
 {newItemListstr}
 
 EOM";
-                    try
-                    {
+
                         await _emailSender.SendEmailAsync("New League Activity", body);
 
                         foreach (var item in newItems)
@@ -58,16 +60,16 @@ EOM";
                             activityItemCache.Add(item);
                         }
                     }
-                    catch (Exception ex)
+                }
+                catch (Exception ex)
+                {
+                    try
                     {
-                        try
-                        {
-                            await _emailSender.SendEmailAsync("New Exception occurred", ex.ToString());
-                        }
-                        catch
-                        {
-                            // do nothing
-                        }
+                        await _emailSender.SendEmailAsync("Raspberry Pi Error!", ex.ToString());
+                    }
+                    catch
+                    {
+                        Console.WriteLine($"An unexpected error occured.\n{ex.ToString()}");
                     }
                 }
 

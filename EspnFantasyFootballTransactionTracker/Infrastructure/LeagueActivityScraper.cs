@@ -8,7 +8,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace EspnFantasyFootballTransactionTracker.Scraping
+namespace EspnFantasyFootballTransactionTracker.Infrastructure
 {
     class LeagueActivityScraper : ILeagueActivityScraper
     {
@@ -19,12 +19,12 @@ namespace EspnFantasyFootballTransactionTracker.Scraping
             _leagueConfig = emailConfiguration.Value;
         }
 
-        public ICollection<ActivityItem> GetNewActivityItems()
+        public List<ActivityItem> GetActivityItems()
         {
             return GetNewActivityItemsAsync().Result;
         }
 
-        private async Task<ICollection<ActivityItem>> GetNewActivityItemsAsync()
+        private async Task<List<ActivityItem>> GetNewActivityItemsAsync()
         {
             HttpClient httpClient = new HttpClient();
             var response = await httpClient.GetAsync($"http://games.espn.com/ffl/leagueoffice?leagueId={_leagueConfig.LeagueId}&seasonId={_leagueConfig.SeasonId}");
@@ -52,7 +52,7 @@ namespace EspnFantasyFootballTransactionTracker.Scraping
 
                 var dateTime = DateTime.ParseExact($"{date} {time}", "MMM d h:mm tt", new CultureInfo("en-US"));
 
-                ActivityItem itemToAdd = new ActivityItem(dateTime, descriptionWithoutAsterisk);
+                ActivityItem itemToAdd = new ActivityItem("", descriptionWithoutAsterisk, dateTime);
 
                 items.Add(itemToAdd);
                 i++;

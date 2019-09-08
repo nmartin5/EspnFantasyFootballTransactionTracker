@@ -1,47 +1,47 @@
-﻿using EspnFantasyFootballTransactionTracker.Model;
-using EspnFantasyFootballTransactionTracker.Scraping;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.IO;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
+using EspnFantasyFootballTransactionTracker.Infrastructure;
+using EspnFantasyFootballTransactionTracker.Infrastructure.Persistence;
 
 namespace EspnFantasyFootballTransactionTracker
 {
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            Console.WriteLine($"Application starting...");
-            IConfigurationRoot configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .AddEnvironmentVariables()
+            var host = new HostBuilder()
+            .ConfigureLogging((hostContext, config) =>
+            {
+                config.AddConsole();
+                config.AddDebug();
+            })
+            .ConfigureHostConfiguration(config => config.AddEnvironmentVariables())
+            .ConfigureAppConfiguration((hostContext, config) =>
+            {
+                config.AddJsonFile("appsettings.json", optional: true);
+                config.AddJsonFile($"appsettings.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true);
+                config.AddCommandLine(args);
+            })
+            .ConfigureServices((hostContext, services) =>
+            {
+                services.AddLogging();
+                services.AddHostedService<RecentActivityPollingService>();
+                services.AddScoped<ILeagueActivityScraper, LeagueActivityScraper>();
+                services.AddScoped<INotificationService, TwilioSMSNotificationService>();
+                services.AddScoped<IActivityContextFactory, ActivityContextFactory>();
+                services.AddScoped<IActivityItemRepository, ActivityItemRepository>();
+            })
+                .UseConsoleLifetime()
                 .Build();
 
-            var services = new ServiceCollection();
-
-            services.Configure<EmailConfiguration>(configuration.GetSection(nameof(EmailConfiguration)));
-            services.Configure<LeagueConfiguration>(configuration.GetSection(nameof(LeagueConfiguration)));
-
-            services.AddSingleton<IEmailSender, EmailSender>();
-            services.AddSingleton<ILeagueActivityScraper, LeagueActivityScraper>();
-            services.AddSingleton<Process>();
-
-            ServiceProvider provider = services.BuildServiceProvider();
-
-            var process = provider.GetService<Process>();
-
-            try
+            using (host)
             {
-                process.StartAsync().Wait();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"An unexpected error occured.\n{ex.ToString()}");
+                await host.StartAsync();
 
-                var emailService = provider.GetService<IEmailSender>();
-
-                emailService.SendEmailAsync("Raspberry Pi Error!", ex.ToString());
+                await host.WaitForShutdownAsync();
             }
         }
     }

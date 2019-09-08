@@ -1,10 +1,10 @@
 ﻿using EspnFantasyFootballTransactionTracker.Model;
 using System.Collections.Generic;
 
-namespace EspnFantasyFootballTransactionTracker.Scraping
+namespace EspnFantasyFootballTransactionTracker.Infrastructure
 {
     public interface ILeagueActivityScraper
     {
-        ICollection<ActivityItem> GetNewActivityItems();
+        List<ActivityItem> GetActivityItems();
     }
 }

@@ -1,30 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace EspnFantasyFootballTransactionTracker.Model
 {
-    public class ActivityItem : IEquatable<ActivityItem>
+    public class ActivityItem
     {
-        public DateTime DateTime { get; private set; }
-        public string Description { get; private set; }
+        public Guid Id { get; set; }
+        public string Type { get; set; }
+        public string Detail { get; set; }
+        public DateTime Date { get; set; }
 
-        public ActivityItem(DateTime activityTime, string description)
+        public ActivityItem(string type, string detail, DateTime activityDate)
         {
-            DateTime = activityTime;
-            Description = description;
+            Id = Guid.NewGuid();
+
+            Type = type;
+            Detail = detail;
+
+            Date = activityDate.ToUniversalTime();
         }
 
-        public bool Equals(ActivityItem item)
-        {
-            return DateTime == item.DateTime && Description == item.Description;
-        }
-
-        public override int GetHashCode()
-        {
-            var hashCode = 1715533081;
-            hashCode = hashCode * -1521134295 + DateTime.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Description);
-            return hashCode;
-        }
+        private ActivityItem() { }
     }
 }

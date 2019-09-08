@@ -2,8 +2,8 @@
 
 namespace EspnFantasyFootballTransactionTracker
 {
-    public interface IEmailSender
+    public interface INotificationService
     {
-        Task SendEmailAsync(string subject, string message);
+        Task NotifyAsync(string message);
     }
 }
